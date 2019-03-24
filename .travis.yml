@@ -1,0 +1,25 @@
+sudo: required
+services:
+  - docker
+
+before_install:
+  - docker build -t madanhar/react-test -f ./client/Dockerfile.dev ./client
+
+script:
+  - docker run madanhar/react-test npm test -- --coverage
+
+after_success:
+  - docker build -t madanhar/multi-client ./client
+  - docker build -t madanhar/multi-nginx ./nginx
+  - docker build -t madanhar/multi-server ./server
+  - docker build -t madanhar/multi-worker ./worker
+
+# Log into the docker cli
+
+  - echo "$DOCKER_PASSWORD" | docker login -u "$DOCKER_ID" --password-stdin
+
+# Take those docker images and push them to docker hub:
+  - docker push madanhar/multi-client
+  - docker push madanhar/multi-nginx
+  - docker push madanhar/multi-server
+  - docker push madanhar/multi-worker
